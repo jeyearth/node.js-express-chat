@@ -4,34 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chat App</title>
-    <style>
-      .chat {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-      }
-      .messages {
-        flex: 1;
-        overflow-y: auto;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-      .form {
-        display: flex;
-      }
-      .input {
-        flex: 1;
-        padding: 10px;
-        border: 1px solid #ccc;
-      }
-      .submit {
-        padding: 10px;
-        border: 1px solid #ccc;
-        background: #eee;
-        cursor: pointer;
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="chat">
@@ -43,6 +16,13 @@
     </div>
 
     <script>
+      function formatTime(dateString) {
+        const date = new Date(dateString);
+        const hours = date.getHours().toString().padStart(2, "0");
+        const minutes = date.getMinutes().toString().padStart(2, "0");
+        return `${hours}:${minutes}`;
+      }
+
       function main() {
         const host = location.origin.replace(/^http/, "ws");
         const ws = new WebSocket(host + "/ws");
@@ -55,8 +35,6 @@
           const input = document.querySelector(".input");
           const text = input.value;
           const date = new Date();
-          // ws.send(text)
-          // ws.send(date + " : " + myId + " : " + text);
           ws.send(JSON.stringify({ time: date, id: myId, text }));
           input.value = "";
           input.focus();
@@ -66,13 +44,40 @@
           const response = msg.data;
           const { time, id, text } = JSON.parse(msg.data);
           const messageList = document.querySelector(".messages");
+
           const li = document.createElement("li");
-          // li.textContent = response;
+          li.classList.add("message-container");
+
+          const messageRow = document.createElement("div");
+          messageRow.classList.add("message-row");
+
+          const bubble = document.createElement("p");
+          bubble.classList.add("message-bubble");
+          bubble.textContent = text;
+
+          const timestamp = document.createElement("span");
+          timestamp.classList.add("timestamp");
+          timestamp.textContent = formatTime(time);
+
           if (id === myId) {
-            li.textContent = time + ": " + `(${id})自分:` + text;
+            li.classList.add("mine");
+
+            messageRow.appendChild(timestamp);
+            messageRow.appendChild(bubble);
+            li.appendChild(messageRow);
           } else {
-            li.textContent = time + ": " + id + ": " + text;
+            li.classList.add("other");
+
+            const userIdDiv = document.createElement("div");
+            userIdDiv.classList.add("user-id");
+            userIdDiv.textContent = id;
+
+            messageRow.appendChild(bubble);
+            messageRow.appendChild(timestamp);
+            li.appendChild(userIdDiv);
+            li.appendChild(messageRow);
           }
+
           messageList.appendChild(li);
         };
 
